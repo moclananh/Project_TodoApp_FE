@@ -2,7 +2,7 @@ import { Navigate } from "react-router-dom";
 import { useAuth } from "./forms/AuthContext";
 
 export function PrivateRoute({ children }) {
-  const { user } = useAuth();
+  const storedToken = localStorage.getItem("token");
 
-  return user ? children : <Navigate to="/auth/login" replace />;
+  return storedToken ? children : <Navigate to="/auth/login" replace />;
 }

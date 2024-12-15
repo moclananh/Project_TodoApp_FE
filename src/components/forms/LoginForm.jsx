@@ -4,14 +4,15 @@ import { Controller, useForm } from "react-hook-form";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import * as z from "zod";
 import { loginApi } from "../../apis/LoginApi";
+import toast from "react-hot-toast";
+import { useNavigate } from "react-router";
 const loginSchema = z.object({
   email: z.string().email("Invalid email address"),
-  password: z
-    .string()
-    .min(1, "Password must be at least 1 characters")
+  password: z.string().min(1, "Password must be at least 1 characters"),
 });
 
 const LoginForm = () => {
+  const navigate = useNavigate();
   const {
     control,
     handleSubmit,
@@ -26,8 +27,15 @@ const LoginForm = () => {
 
   const onSubmit = (data) => {
     loginApi.login(data).then((response) => {
-      console.log("Login Response:", response.data);
+      const { data: token, success, message } = response.data;
+      if (!success) {
+        toast.error(message);
+        return;
+      }
+      localStorage.setItem("token", token);
+      navigate("/");
     });
+
     // Add your login logic here
   };
 
