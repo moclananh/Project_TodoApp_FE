@@ -4,6 +4,8 @@ import AppLayout from "./layout/AppLayout";
 import AuthLayout from "./layout/AuthLayout";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import TodoPage from "./pages/TodoPage";
+import { PrivateRoute } from "./components/PrivateRoutes";
 
 function App() {
   const routes = createBrowserRouter([
@@ -27,7 +29,12 @@ function App() {
       children: [
         {
           path: "/",
-          element: <div>dashboard</div>,
+
+          element: (
+            <PrivateRoute>
+              <TodoPage />
+            </PrivateRoute>
+          ),
         },
       ],
     },

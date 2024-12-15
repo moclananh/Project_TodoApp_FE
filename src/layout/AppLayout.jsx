@@ -1,10 +1,11 @@
 import { Outlet } from "react-router";
+import { AuthProvider } from "../components/forms/AuthContext";
 
 const AppLayout = () => {
   return (
-    <div>
+    <AuthProvider>
       <Outlet />
-    </div>
+    </AuthProvider>
   );
 };
 

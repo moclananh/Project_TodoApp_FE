@@ -1,15 +1,14 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Box, Button, TextField, Typography } from "@mui/material";
+import { Box, Button, TextField, Typography, Avatar } from "@mui/material";
 import { Controller, useForm } from "react-hook-form";
+import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import * as z from "zod";
+import { loginApi } from "../../apis/LoginApi";
 const loginSchema = z.object({
   email: z.string().email("Invalid email address"),
   password: z
     .string()
-    .min(8, "Password must be at least 8 characters")
-    .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
-    .regex(/[a-z]/, "Password must contain at least one lowercase letter")
-    .regex(/[0-9]/, "Password must contain at least one number"),
+    .min(1, "Password must be at least 1 characters")
 });
 
 const LoginForm = () => {
@@ -26,7 +25,9 @@ const LoginForm = () => {
   });
 
   const onSubmit = (data) => {
-    console.log("Login Data:", data);
+    loginApi.login(data).then((response) => {
+      console.log("Login Response:", response.data);
+    });
     // Add your login logic here
   };
 
@@ -39,6 +40,9 @@ const LoginForm = () => {
         alignItems: "center",
       }}
     >
+      <Avatar sx={{ m: 1, bgcolor: "secondary.main" }}>
+        <LockOutlinedIcon />
+      </Avatar>
       <Typography component="h1" variant="h5">
         Sign in
       </Typography>

@@ -1,6 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Box, Button, TextField, Typography } from "@mui/material";
+import { Box, Button, TextField, Typography, Avatar } from "@mui/material";
 import { Controller, useForm } from "react-hook-form";
+import PersonAddIcon from "@mui/icons-material/PersonAdd";
 import * as z from "zod";
 const signupSchema = z
   .object({
@@ -56,6 +57,9 @@ const RegisterForm = () => {
         alignItems: "center",
       }}
     >
+      <Avatar sx={{ m: 1, bgcolor: "secondary.main" }}>
+        <PersonAddIcon />
+      </Avatar>
       <Typography component="h1" variant="h5">
         Sign Up
       </Typography>
