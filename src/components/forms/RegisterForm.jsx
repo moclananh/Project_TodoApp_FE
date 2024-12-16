@@ -1,8 +1,10 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Box, Button, TextField, Typography, Avatar } from "@mui/material";
+import { Box, Button, TextField, Typography, Avatar, Stack } from "@mui/material";
 import { Controller, useForm } from "react-hook-form";
 import PersonAddIcon from "@mui/icons-material/PersonAdd";
 import * as z from "zod";
+import { useAuth } from "./AuthContext";
+import { Link } from "react-router";
 const signupSchema = z
   .object({
     username: z
@@ -11,12 +13,7 @@ const signupSchema = z
       .max(20, "Username must be no more than 20 characters")
       .regex(/^[a-zA-Z0-9_]+$/, "Username can only contain letters, numbers, and underscores"),
     email: z.string().email("Invalid email address"),
-    password: z
-      .string()
-      .min(8, "Password must be at least 8 characters")
-      .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
-      .regex(/[a-z]/, "Password must contain at least one lowercase letter")
-      .regex(/[0-9]/, "Password must contain at least one number"),
+    password: z.string().min(1, "Password is required"),
     confirmPassword: z.string(),
   })
   .refine((data) => data.password === data.confirmPassword, {
@@ -126,9 +123,15 @@ const RegisterForm = () => {
             />
           )}
         />
-        <Button type="submit" fullWidth variant="contained" sx={{ mt: 3, mb: 2 }}>
-          Sign Up
-        </Button>
+        <Stack>
+          <Button type="submit" fullWidth variant="contained" sx={{ mt: 3, mb: 2 }}>
+            Sign Up
+          </Button>
+          <Typography>
+            {" "}
+            Already have an account? <Link to="/auth/login">Sign In</Link>
+          </Typography>
+        </Stack>
       </Box>
     </Box>
   );

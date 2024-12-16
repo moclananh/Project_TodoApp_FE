@@ -1,11 +1,11 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Box, Button, TextField, Typography, Avatar } from "@mui/material";
+import { Box, Button, TextField, Typography, Avatar, Stack } from "@mui/material";
 import { Controller, useForm } from "react-hook-form";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import * as z from "zod";
 import { loginApi } from "../../apis/LoginApi";
 import toast from "react-hot-toast";
-import { useNavigate } from "react-router";
+import { Link, useNavigate } from "react-router";
 const loginSchema = z.object({
   email: z.string().email("Invalid email address"),
   password: z.string().min(1, "Password must be at least 1 characters"),
@@ -87,9 +87,15 @@ const LoginForm = () => {
             />
           )}
         />
-        <Button type="submit" fullWidth variant="contained" sx={{ mt: 3, mb: 2 }}>
-          Sign In
-        </Button>
+        <Stack>
+          <Button type="submit" fullWidth variant="contained" sx={{ mt: 3, mb: 2 }}>
+            Sign In
+          </Button>
+          <Typography>
+            {" "}
+            Do not have an account? <Link to="/auth/register">Sign Up</Link>
+          </Typography>
+        </Stack>
       </Box>
     </Box>
   );
