@@ -5,6 +5,8 @@ import PersonAddIcon from "@mui/icons-material/PersonAdd";
 import * as z from "zod";
 import { useAuth } from "./AuthContext";
 import { Link } from "react-router";
+import { loginApi } from "../../apis/LoginApi";
+import toast from "react-hot-toast";
 const signupSchema = z
   .object({
     username: z
@@ -37,12 +39,17 @@ const RegisterForm = () => {
   });
 
   const onSubmit = (data) => {
-    // Destructure to exclude confirmPassword when sending to backend
     const { confirmPassword, ...submitData } = data;
 
-    console.log("Signup Data:", submitData);
-    // Add your signup logic here
-    // Only submitData will be sent to the backend
+    loginApi.register(submitData).then((response) => {
+      const { data, success, message } = response.data;
+      if (!success) {
+        toast.error(message);
+        return;
+      }
+      toast.success(message);
+      localStorage.setItem("token", data);
+    });
   };
 
   return (

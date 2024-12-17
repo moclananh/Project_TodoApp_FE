@@ -2,7 +2,7 @@ import React from "react";
 import { Box, Card, CardContent, Typography, Chip, IconButton, Button, Stack } from "@mui/material";
 import StarIcon from "@mui/icons-material/Star";
 import StarBorderIcon from "@mui/icons-material/StarBorder";
-import { Delete, Edit } from "@mui/icons-material";
+import { Delete, Edit, Archive } from "@mui/icons-material";
 
 // Utility to generate a random background color
 const getRandomBackgroundColor = () => {
@@ -14,8 +14,8 @@ export const TodoCard = ({ todo, onEdit, onDelete }) => {
   const { title, description, status, priority, createdDate, endDate, star, isActive } = todo;
 
   const PriorityChip = ({ priority }) => {
-    const colors = ["success", "warning", "error"];
-    const labels = ["Low", "Medium", "High"];
+    const colors = ["success", "warning", "error", "error", "error", "error"];
+    const labels = ["Low", "Medium", "High", "Urgent", "Critical", "Immediate"];
 
     return <Chip label={labels[priority]} color={colors[priority]} size="small" />;
   };
@@ -80,6 +80,9 @@ export const TodoCard = ({ todo, onEdit, onDelete }) => {
           <Button variant="contained" color="error" startIcon={<Delete />} onClick={() => onDelete(todo.id)} size="small">
             Delete
           </Button>
+          <IconButton onClick={() => onDelete(todo.id)} size="small">
+            <Archive color="inherit" />
+          </IconButton>
         </Box>
       </CardContent>
     </Card>
