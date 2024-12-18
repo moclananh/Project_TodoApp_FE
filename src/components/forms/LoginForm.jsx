@@ -26,15 +26,21 @@ const LoginForm = () => {
   });
 
   const onSubmit = (data) => {
-    loginApi.login(data).then((response) => {
-      const { data: token, success, message } = response.data;
-      if (!success) {
-        toast.error(message);
-        return;
-      }
-      localStorage.setItem("token", token);
-      navigate("/");
-    });
+    loginApi
+      .login(data)
+      .then((response) => {
+        const { id, userName, data: token } = response.data;
+        const user = {
+          id,
+          userName,
+          token,
+        };
+        localStorage.setItem("user", JSON.stringify(user));
+        navigate("/");
+      })
+      .catch((error) => {
+        toast.error(error.response.data.detail);
+      });
 
     // Add your login logic here
   };

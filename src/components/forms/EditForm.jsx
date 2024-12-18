@@ -1,11 +1,12 @@
-import { zodResolver } from "@hookform/resolvers/zod";
-import { Button, Dialog, DialogActions, DialogContent, DialogTitle, FormControl, InputLabel, MenuItem, Select, TextField } from "@mui/material";
-import React from "react";
-import { Controller, useForm } from "react-hook-form";
-import toast from "react-hot-toast";
+import React, { useEffect } from "react";
 import { z } from "zod";
-import { loginApi } from "../../apis/LoginApi";
+import { Controller, useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Button, Dialog, DialogTitle, DialogContent, DialogActions, TextField, Select, MenuItem, FormControl, InputLabel } from "@mui/material";
 import { TodoApi } from "../../apis/TodoApi";
+import toast from "react-hot-toast";
+import { findKey, rest } from "lodash";
+import { loginApi } from "../../apis/LoginApi";
 const TodoSchema = z.object({
   title: z.string(), // Required
   description: z.string().optional(),
@@ -17,17 +18,15 @@ const TodoSchema = z.object({
   isActive: z.boolean().optional(),
   userId: z.string().optional(),
 });
-export const todoStatus = {
-  0: "Draft",
-  1: "Todo",
-  2: "InProgress",
-  3: "Done",
-  4: "Bug",
-};
-const formatDate = (date) => date.toISOString().split("T")[0];
-const TodoForm = ({ openDialog, closeDialog, onSuccess }) => {
+const EditTodoForm = ({ openDialog, closeDialog, onSuccess, todoId }) => {
   const { id } = loginApi.getUser();
-
+  const todoStatus = {
+    0: "Draft",
+    1: "Todo",
+    2: "InProgress",
+    3: "Done",
+    4: "Bug",
+  };
   const { control, handleSubmit } = useForm({
     resolver: zodResolver(TodoSchema),
     defaultValues: {
@@ -35,8 +34,8 @@ const TodoForm = ({ openDialog, closeDialog, onSuccess }) => {
       description: "",
       status: 0,
       priority: 0,
-      startDate: formatDate(new Date()),
-      endDate: formatDate(new Date()),
+      startDate: new Date().toISOString(),
+      endDate: new Date().toISOString(),
       star: false,
       isActive: true,
       userId: id,
@@ -59,7 +58,7 @@ const TodoForm = ({ openDialog, closeDialog, onSuccess }) => {
   return (
     <Dialog open={openDialog} onClose={closeDialog}>
       <form onSubmit={handleSubmit(handleOnSubmit)}>
-        <DialogTitle>{"Add New Todo"}</DialogTitle>
+        <DialogTitle>{"Edit Todo"}</DialogTitle>
         <DialogContent>
           <Controller render={({ field }) => <TextField {...field} margin="dense" label="Title" fullWidth />} name="title" control={control} />
           <Controller
@@ -99,15 +98,8 @@ const TodoForm = ({ openDialog, closeDialog, onSuccess }) => {
             />
           </FormControl>
           <Controller
-            render={({ field }) => (
-              <TextField {...field} margin="dense" label="Start Date" type="date" fullWidth InputLabelProps={{ shrink: true }} />
-            )}
-            name="startDate"
-            control={control}
-          />
-          <Controller
             render={({ field }) => <TextField {...field} margin="dense" label="End Date" type="date" fullWidth InputLabelProps={{ shrink: true }} />}
-            name="endDate"
+            name="startDate"
             control={control}
           />
         </DialogContent>
@@ -116,7 +108,7 @@ const TodoForm = ({ openDialog, closeDialog, onSuccess }) => {
             Cancel
           </Button>
           <Button type="submit" color="primary">
-            Add
+            Edit
           </Button>
         </DialogActions>
       </form>
@@ -124,4 +116,4 @@ const TodoForm = ({ openDialog, closeDialog, onSuccess }) => {
   );
 };
 
-export default TodoForm;
+export default EditTodoForm;

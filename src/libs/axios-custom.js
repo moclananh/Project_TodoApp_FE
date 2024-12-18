@@ -1,4 +1,5 @@
 import axios from "axios";
+import { loginApi } from "../apis/LoginApi";
 
 // Create an axios instance
 const httpClient = axios.create({
@@ -9,7 +10,7 @@ const httpClient = axios.create({
 httpClient.interceptors.request.use(
   (config) => {
     // Retrieve the token from local storage
-    const token = localStorage.getItem("token");
+    const token = loginApi.getUser().token;
 
     // If token exists, add it to the Authorization header
     if (token) {
@@ -32,10 +33,10 @@ httpClient.interceptors.response.use(
     if (error.response && error.response.status === 401) {
       // Token is invalid or expired
       // Clear the token from local storage
-      localStorage.removeItem("authToken");
+      localStorage.removeItem("user");
 
       // Optional: Redirect to login page
-      window.location.href = "/login";
+      window.location.href = "/auth/login";
     }
 
     return Promise.reject(error);
@@ -63,4 +64,3 @@ export const isAuthenticated = () => {
 
 // Export the configured axios instance
 export default httpClient;
-

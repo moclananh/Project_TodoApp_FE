@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Popover, TextField, Select, MenuItem, Button, Checkbox, FormControlLabel, Grid, IconButton, Box, Typography } from "@mui/material";
 import FilterListIcon from "@mui/icons-material/FilterList";
+import { todoStatus } from "./forms/TodoForm";
 
 const FilterBox = ({ onFilter }) => {
   const [anchorEl, setAnchorEl] = useState(null); // Anchor element for Popover
@@ -22,7 +23,7 @@ const FilterBox = ({ onFilter }) => {
     setFilter({
       title: "",
       priority: "",
-      status: "",
+      status: 0,
       star: false,
       isActive: true,
       createdDate: "",
@@ -98,10 +99,11 @@ const FilterBox = ({ onFilter }) => {
             {/* Status Filter */}
             <Grid item xs={12}>
               <Select fullWidth name="status" value={filter.status} onChange={handleChange} displayEmpty>
-                <MenuItem value="">Select Status</MenuItem>
-                <MenuItem value="Pending">Pending</MenuItem>
-                <MenuItem value="Completed">Completed</MenuItem>
-                <MenuItem value="Overdue">Overdue</MenuItem>
+                {Object.entries(todoStatus).map(([key, value]) => (
+                  <MenuItem key={key} value={Number(key)}>
+                    {value}
+                  </MenuItem>
+                ))}
               </Select>
             </Grid>
 

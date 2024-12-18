@@ -11,7 +11,7 @@ const getRandomBackgroundColor = () => {
 };
 
 export const TodoCard = ({ todo, onEdit, onDelete }) => {
-  const { title, description, status, priority, createdDate, endDate, star, isActive } = todo;
+  const { title, description, status, priority, startDate, endDate, star, isActive } = todo;
 
   const PriorityChip = ({ priority }) => {
     const colors = ["success", "warning", "error", "error", "error", "error"];
@@ -66,7 +66,7 @@ export const TodoCard = ({ todo, onEdit, onDelete }) => {
 
         {/* Dates */}
         <Typography variant="caption" display="block">
-          Created: {new Date(createdDate).toLocaleDateString()}
+          Start: {new Date(startDate).toLocaleDateString()}
         </Typography>
         <Typography variant="caption" display="block" marginBottom={2}>
           Due: {new Date(endDate).toLocaleDateString()}

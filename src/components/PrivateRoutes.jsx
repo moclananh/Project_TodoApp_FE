@@ -1,8 +1,10 @@
 import { Navigate } from "react-router-dom";
 import { useAuth } from "./forms/AuthContext";
+import { loginApi } from "../apis/LoginApi";
+import { isNil } from "lodash";
 
 export function PrivateRoute({ children }) {
-  const storedToken = localStorage.getItem("token");
+  const user = loginApi.getUser();
 
-  return storedToken ? children : <Navigate to="/auth/login" replace />;
+  return !isNil(user) ? children : <Navigate to="/auth/login" replace />;
 }

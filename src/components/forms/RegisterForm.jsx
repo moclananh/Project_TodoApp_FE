@@ -3,7 +3,6 @@ import { Box, Button, TextField, Typography, Avatar, Stack } from "@mui/material
 import { Controller, useForm } from "react-hook-form";
 import PersonAddIcon from "@mui/icons-material/PersonAdd";
 import * as z from "zod";
-import { useAuth } from "./AuthContext";
 import { Link } from "react-router";
 import { loginApi } from "../../apis/LoginApi";
 import toast from "react-hot-toast";
@@ -41,15 +40,15 @@ const RegisterForm = () => {
   const onSubmit = (data) => {
     const { confirmPassword, ...submitData } = data;
 
-    loginApi.register(submitData).then((response) => {
-      const { data, success, message } = response.data;
-      if (!success) {
-        toast.error(message);
-        return;
-      }
-      toast.success(message);
-      localStorage.setItem("token", data);
-    });
+    loginApi
+      .register(submitData)
+      .then((response) => {
+        const { data, message } = response.data;
+        toast.success(message);
+      })
+      .catch((error) => {
+        toast.error(error.response.data.detail);
+      });
   };
 
   return (
