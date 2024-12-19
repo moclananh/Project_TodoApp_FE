@@ -5,8 +5,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Button, Dialog, DialogTitle, DialogContent, DialogActions, TextField, Select, MenuItem, FormControl, InputLabel } from "@mui/material";
 import { TodoApi } from "../../apis/TodoApi";
 import toast from "react-hot-toast";
-import { findKey, rest } from "lodash";
 import { loginApi } from "../../apis/LoginApi";
+
 const TodoSchema = z.object({
   title: z.string(), // Required
   description: z.string().optional(),
@@ -18,7 +18,8 @@ const TodoSchema = z.object({
   isActive: z.boolean().optional(),
   userId: z.string().optional(),
 });
-const EditTodoForm = ({ openDialog, closeDialog, onSuccess, todoId }) => {
+
+const EditTodoForm = ({ openDialog, closeDialog, onSuccess, todoId, todoData }) => {
   const { id } = loginApi.getUser();
   const todoStatus = {
     0: "Draft",
@@ -27,32 +28,53 @@ const EditTodoForm = ({ openDialog, closeDialog, onSuccess, todoId }) => {
     3: "Done",
     4: "Bug",
   };
-  const { control, handleSubmit } = useForm({
+
+  const { control, handleSubmit, reset } = useForm({
     resolver: zodResolver(TodoSchema),
     defaultValues: {
-      title: "",
-      description: "",
-      status: 0,
-      priority: 0,
-      startDate: new Date().toISOString(),
-      endDate: new Date().toISOString(),
-      star: false,
-      isActive: true,
+      title: todoData?.title || "",
+      description: todoData?.description || "",
+      status: todoData?.status || 0,
+      priority: todoData?.priority || 0,
+      startDate: todoData?.startDate || new Date().toISOString(),
+      endDate: todoData?.endDate || new Date().toISOString(),
+      star: todoData?.star || false,
+      isActive: todoData?.isActive || true,
       userId: id,
     },
   });
 
+  useEffect(() => {
+    if (todoData) {
+      reset({
+        title: todoData.title || "",
+        description: todoData.description || "",
+        status: todoData.status || 0,
+        priority: todoData.priority || 0,
+        startDate: todoData.startDate || new Date().toISOString(),
+        endDate: todoData.endDate || new Date().toISOString(),
+        star: todoData.star || false,
+        isActive: todoData.isActive || true,
+        userId: todoData.userId || id,
+      });
+    }
+  }, [todoData, reset, id]);
+
   const handleOnSubmit = (data) => {
-    TodoApi.createTodo(data).then((response) => {
-      const { success, message } = response.data;
-      if (!success) {
-        toast.error(message);
-        return;
-      }
-      toast.success(message);
-      onSuccess();
-      closeDialog();
-    });
+    TodoApi.updateTodo(todoId, data)
+      .then((response) => {
+        const { success, message } = response.data;
+        if (!success) {
+          toast.error(message);
+          return;
+        }
+        toast.success(message);
+        onSuccess();
+        closeDialog();
+      })
+      .catch((error) => {
+        toast.error("Error updating todo. Please try again.");
+      });
   };
 
   return (
@@ -66,7 +88,6 @@ const EditTodoForm = ({ openDialog, closeDialog, onSuccess, todoId }) => {
             name="description"
             control={control}
           />
-
           <FormControl fullWidth margin="dense">
             <InputLabel>Status</InputLabel>
             <Controller
@@ -98,8 +119,13 @@ const EditTodoForm = ({ openDialog, closeDialog, onSuccess, todoId }) => {
             />
           </FormControl>
           <Controller
-            render={({ field }) => <TextField {...field} margin="dense" label="End Date" type="date" fullWidth InputLabelProps={{ shrink: true }} />}
+            render={({ field }) => <TextField {...field} margin="dense" label="Start Date" type="date" fullWidth InputLabelProps={{ shrink: true }} />}
             name="startDate"
+            control={control}
+          />
+          <Controller
+            render={({ field }) => <TextField {...field} margin="dense" label="End Date" type="date" fullWidth InputLabelProps={{ shrink: true }} />}
+            name="endDate"
             control={control}
           />
         </DialogContent>

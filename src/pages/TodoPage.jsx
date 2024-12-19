@@ -9,6 +9,7 @@ import toast from "react-hot-toast";
 import { TodoApi } from "../apis/TodoApi";
 import { TodoCard } from "../components/card/todo-card";
 import TodoForm from "../components/forms/TodoForm";
+import EditForm from "../components/forms/EditForm";
 import FilterBox from "../components/FilterBox";
 import { loginApi } from "../apis/LoginApi";
 
@@ -19,18 +20,21 @@ export default function TodoPage() {
   const [currentTodo, setCurrentTodo] = useState({});
   const [isEditing, setIsEditing] = useState(false);
   const { logout } = useAuth();
-  const [filter, setFilter] = useState();
+  const [filter, setFilter] = useState({});
   const [totalPage, setTotalPage] = useState();
   const [currentPageNumber, setCurrentPageNumber] = useState(1);
+
   const handleCloseDialog = () => {
     setOpenDialog(false);
     setCurrentTodo({});
     setIsEditing(false);
   };
+
   const handleFilter = (filter) => {
     const cleanedFilter = Object.fromEntries(Object.entries(filter).filter(([_, value]) => value !== "" && value !== null && value !== undefined));
     setFilter(cleanedFilter);
   };
+
   useEffect(() => {
     TodoApi.getByUserId(id, filter).then((response) => {
       const { success, message, data } = response.data;
@@ -43,11 +47,13 @@ export default function TodoPage() {
       setCurrentPageNumber(data.pageNumber);
     });
   }, [filter, id]);
+
   const handleOnEdit = (todo) => {
     setCurrentTodo(todo);
     setIsEditing(true);
     setOpenDialog(true);
   };
+
   const handleOnSuccess = () => {
     TodoApi.getTodos(filter).then((response) => {
       const { success, message, data } = response.data;
@@ -79,14 +85,7 @@ export default function TodoPage() {
 
   return (
     <Container maxWidth="lg">
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          my: 4,
-        }}
-      >
+      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", my: 4 }}>
         <Stack alignItems={"center"} gap={4} variant="standard" flexDirection={"row"}>
           <Typography variant="h4">Todo List</Typography>
           <FilterBox onFilter={handleFilter} />
@@ -106,14 +105,13 @@ export default function TodoPage() {
             variant="contained"
             color="secondary"
             startIcon={<LogoutIcon />}
-            onClick={() => {
-              logout();
-            }}
+            onClick={() => logout()}
           >
             Logout
           </Button>
         </Stack>
       </Box>
+
       {isEmpty(todos) && <Typography variant="h6">No todo found</Typography>}
 
       <Grid container spacing={3}>
@@ -123,6 +121,7 @@ export default function TodoPage() {
           </Grid>
         ))}
       </Grid>
+
       <Stack flexDirection={"row"} justifyContent={"center"} my="20px">
         <Pagination
           count={Math.ceil(totalPage / 9)}
@@ -134,7 +133,17 @@ export default function TodoPage() {
         />
       </Stack>
 
-      <TodoForm onSuccess={handleOnSuccess} closeDialog={handleCloseDialog} isEditing={isEditing} openDialog={openDialog} todo={currentTodo} />
+      {isEditing ? (
+        <EditForm
+          openDialog={openDialog}
+          closeDialog={handleCloseDialog}
+          onSuccess={handleOnSuccess}
+          todoId={currentTodo.id}
+          todoData={currentTodo}
+        />
+      ) : (
+        <TodoForm openDialog={openDialog} closeDialog={handleCloseDialog} onSuccess={handleOnSuccess} />
+      )}
     </Container>
   );
 }
