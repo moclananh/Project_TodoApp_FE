@@ -7,11 +7,11 @@ const FilterBox = ({ onFilter }) => {
   const [anchorEl, setAnchorEl] = useState(null); // Anchor element for Popover
   const [filter, setFilter] = useState({
     title: "",
-    priority: "",
-    status: "",
+    priority: null,
+    status: 0,
     star: false,
     isActive: true,
-    createdDate: "",
+    startDate: "",
     endDate: "",
   });
 
@@ -22,11 +22,11 @@ const FilterBox = ({ onFilter }) => {
   const handleClearFilter = () => {
     setFilter({
       title: "",
-      priority: "",
+      priority: null,
       status: 0,
       star: false,
       isActive: true,
-      createdDate: "",
+      startDate: "",
       endDate: "",
     });
     onFilter({});
@@ -89,10 +89,10 @@ const FilterBox = ({ onFilter }) => {
             {/* Priority Filter */}
             <Grid item xs={12}>
               <Select fullWidth name="priority" value={filter.priority} onChange={handleChange} displayEmpty>
-                <MenuItem value="">Select Priority</MenuItem>
-                <MenuItem value="Low">Low</MenuItem>
-                <MenuItem value="Medium">Medium</MenuItem>
-                <MenuItem value="High">High</MenuItem>
+                <MenuItem value={null}>Select Priority</MenuItem>
+                <MenuItem value={0}>Low</MenuItem>
+                <MenuItem value={1}>Medium</MenuItem>
+                <MenuItem value={2}>High</MenuItem>
               </Select>
             </Grid>
 
@@ -121,10 +121,10 @@ const FilterBox = ({ onFilter }) => {
             <Grid item xs={12}>
               <TextField
                 fullWidth
-                name="createdDate"
-                label="Created Date"
+                name="startDate"
+                label="Start Date"
                 type="date"
-                value={filter.createdDate}
+                value={filter.startDate}
                 InputLabelProps={{ shrink: true }}
                 onChange={handleChange}
               />

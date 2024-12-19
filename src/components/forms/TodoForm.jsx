@@ -6,8 +6,8 @@ import toast from "react-hot-toast";
 import { z } from "zod";
 import { loginApi } from "../../apis/LoginApi";
 import { TodoApi } from "../../apis/TodoApi";
-const TodoSchema = z.object({
-  title: z.string(), // Required
+export const TodoSchema = z.object({
+  title: z.string().min(1, { message: "Title cannot be empty" }), // Required
   description: z.string().optional(),
   status: z.number().optional(),
   priority: z.number().optional(),
@@ -24,11 +24,16 @@ export const todoStatus = {
   3: "Done",
   4: "Bug",
 };
-const formatDate = (date) => date.toISOString().split("T")[0];
-const TodoForm = ({ openDialog, closeDialog, onSuccess }) => {
+export const formatDate = (date) => date.toISOString().split("T")[0];
+const TodoForm = ({ openDialog, closeDialog, onSuccess, isEdit }) => {
   const { id } = loginApi.getUser();
 
-  const { control, handleSubmit } = useForm({
+  const {
+    control,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm({
     resolver: zodResolver(TodoSchema),
     defaultValues: {
       title: "",
@@ -53,6 +58,17 @@ const TodoForm = ({ openDialog, closeDialog, onSuccess }) => {
       toast.success(message);
       onSuccess();
       closeDialog();
+      reset({
+        title: "",
+        description: "",
+        status: 0,
+        priority: 0,
+        startDate: formatDate(new Date()),
+        endDate: formatDate(new Date()),
+        star: false,
+        isActive: true,
+        userId: id,
+      });
     });
   };
 
@@ -61,7 +77,20 @@ const TodoForm = ({ openDialog, closeDialog, onSuccess }) => {
       <form onSubmit={handleSubmit(handleOnSubmit)}>
         <DialogTitle>{"Add New Todo"}</DialogTitle>
         <DialogContent>
-          <Controller render={({ field }) => <TextField {...field} margin="dense" label="Title" fullWidth />} name="title" control={control} />
+          <Controller
+            render={({ field }) => (
+              <TextField
+                {...field}
+                margin="dense"
+                label="Title"
+                fullWidth
+                error={!!errors.title} // Highlights the field in red if there's an error
+                helperText={errors.title?.message} // Displays the validation message
+              />
+            )}
+            name="title"
+            control={control}
+          />
           <Controller
             render={({ field }) => <TextField {...field} margin="dense" label="Description" fullWidth multiline rows={4} />}
             name="description"

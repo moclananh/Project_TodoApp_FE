@@ -9,36 +9,33 @@ const httpClient = axios.create({
 // Request interceptor to add bearer token
 httpClient.interceptors.request.use(
   (config) => {
-    // Retrieve the token from local storage
-    const token = loginApi.getUser().token;
-
-    // If token exists, add it to the Authorization header
-    if (token) {
-      config.headers["Authorization"] = `Bearer ${token}`;
+    const user = localStorage.getItem("user");
+    if (user) {
+      try {
+        const parsedUser = JSON.parse(user);
+        if (parsedUser.token) {
+          config.headers["Authorization"] = `Bearer ${parsedUser.token}`;
+        } else {
+          console.warn("No token found in user object:", parsedUser);
+        }
+      } catch (err) {
+        console.error("Failed to parse user from localStorage:", err);
+      }
+    } else {
+      console.warn("User not found in localStorage");
     }
-
     return config;
   },
-  (error) => {
-    // Handle request error
-    return Promise.reject(error);
-  }
+  (error) => Promise.reject(error)
 );
 
 // Response interceptor for handling token-related errors
 httpClient.interceptors.response.use(
   (response) => response,
   (error) => {
-    // Handle unauthorized or token expired errors
-    if (error.response && error.response.status === 401) {
-      // Token is invalid or expired
-      // Clear the token from local storage
-      localStorage.removeItem("user");
-
-      // Optional: Redirect to login page
+    if (error.response.status === 401) {
       window.location.href = "/auth/login";
     }
-
     return Promise.reject(error);
   }
 );

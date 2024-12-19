@@ -2,63 +2,71 @@ import React, { useEffect } from "react";
 import { z } from "zod";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Button, Dialog, DialogTitle, DialogContent, DialogActions, TextField, Select, MenuItem, FormControl, InputLabel } from "@mui/material";
+import {
+  Button,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
+  Stack,
+} from "@mui/material";
 import { TodoApi } from "../../apis/TodoApi";
 import toast from "react-hot-toast";
 import { loginApi } from "../../apis/LoginApi";
+import { formatDate, TodoSchema, todoStatus } from "./TodoForm";
+import { findKey } from "lodash";
 
-const TodoSchema = z.object({
-  title: z.string(), // Required
-  description: z.string().optional(),
-  status: z.number().optional(),
-  priority: z.number().optional(),
-  startDate: z.string().optional(), // Assuming ISO string format
-  endDate: z.string().optional(), // Assuming ISO string format
-  star: z.boolean().optional(),
-  isActive: z.boolean().optional(),
-  userId: z.string().optional(),
-});
-
-const EditTodoForm = ({ openDialog, closeDialog, onSuccess, todoId, todoData }) => {
+const EditTodoForm = ({ openDialog, closeDialog, onSuccess, todoId, isEdit }) => {
   const { id } = loginApi.getUser();
-  const todoStatus = {
-    0: "Draft",
-    1: "Todo",
-    2: "InProgress",
-    3: "Done",
-    4: "Bug",
-  };
+  const [isLoading, setIsLoading] = React.useState(false);
 
-  const { control, handleSubmit, reset } = useForm({
+  useEffect(() => {
+    if (todoId !== null || !id) {
+      TodoApi.getById(todoId)
+        .then((response) => {
+          const { data } = response.data;
+          const statusKey = findKey(todoStatus, (val) => val === data.status);
+          reset({
+            ...data,
+            startDate: formatDate(new Date(data.startDate)),
+            endDate: formatDate(new Date(data.endDate)),
+            status: Number(statusKey),
+          });
+        })
+        .catch((e) => {
+          toast.error("Error getting todo. Please try again.");
+          console.error(e);
+        })
+        .finally(() => {
+          setIsLoading(false);
+        });
+    }
+  }, [todoId]);
+
+  const {
+    control,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm({
     resolver: zodResolver(TodoSchema),
     defaultValues: {
-      title: todoData?.title || "",
-      description: todoData?.description || "",
-      status: todoData?.status || 0,
-      priority: todoData?.priority || 0,
-      startDate: todoData?.startDate || new Date().toISOString(),
-      endDate: todoData?.endDate || new Date().toISOString(),
-      star: todoData?.star || false,
-      isActive: todoData?.isActive || true,
+      title: "",
+      description: "",
+      status: 0,
+      priority: 0,
+      startDate: new Date().toISOString(),
+      endDate: new Date().toISOString(),
+      star: false,
+      isActive: true,
       userId: id,
     },
   });
-
-  useEffect(() => {
-    if (todoData) {
-      reset({
-        title: todoData.title || "",
-        description: todoData.description || "",
-        status: todoData.status || 0,
-        priority: todoData.priority || 0,
-        startDate: todoData.startDate || new Date().toISOString(),
-        endDate: todoData.endDate || new Date().toISOString(),
-        star: todoData.star || false,
-        isActive: todoData.isActive || true,
-        userId: todoData.userId || id,
-      });
-    }
-  }, [todoData, reset, id]);
 
   const handleOnSubmit = (data) => {
     TodoApi.updateTodo(todoId, data)
@@ -80,11 +88,25 @@ const EditTodoForm = ({ openDialog, closeDialog, onSuccess, todoId, todoData }) 
   return (
     <Dialog open={openDialog} onClose={closeDialog}>
       <form onSubmit={handleSubmit(handleOnSubmit)}>
-        <DialogTitle>{"Edit Todo"}</DialogTitle>
+        <DialogTitle>{isEdit ? "Edit Todo" : "Todo detail"}</DialogTitle>
         <DialogContent>
-          <Controller render={({ field }) => <TextField {...field} margin="dense" label="Title" fullWidth />} name="title" control={control} />
           <Controller
-            render={({ field }) => <TextField {...field} margin="dense" label="Description" fullWidth multiline rows={4} />}
+            render={({ field }) => (
+              <TextField
+                {...field}
+                disabled={!isEdit}
+                margin="dense"
+                label="Title"
+                fullWidth
+                error={!!errors.title} // Highlights the field in red if there's an error
+                helperText={errors.title?.message} // Displays the validation message
+              />
+            )}
+            name="title"
+            control={control}
+          />
+          <Controller
+            render={({ field }) => <TextField disabled={!isEdit} {...field} margin="dense" label="Description" fullWidth multiline rows={4} />}
             name="description"
             control={control}
           />
@@ -94,7 +116,7 @@ const EditTodoForm = ({ openDialog, closeDialog, onSuccess, todoId, todoData }) 
               name="status"
               control={control}
               render={({ field }) => (
-                <Select {...field} label="Status">
+                <Select disabled={!isEdit} {...field} label="Status">
                   {Object.entries(todoStatus).map(([key, value]) => (
                     <MenuItem key={key} value={Number(key)}>
                       {value}
@@ -110,7 +132,7 @@ const EditTodoForm = ({ openDialog, closeDialog, onSuccess, todoId, todoData }) 
               name="priority"
               control={control}
               render={({ field }) => (
-                <Select {...field} label="Priority">
+                <Select disabled={!isEdit} {...field} label="Priority">
                   <MenuItem value={0}>Low</MenuItem>
                   <MenuItem value={1}>Medium</MenuItem>
                   <MenuItem value={2}>High</MenuItem>
@@ -119,12 +141,16 @@ const EditTodoForm = ({ openDialog, closeDialog, onSuccess, todoId, todoData }) 
             />
           </FormControl>
           <Controller
-            render={({ field }) => <TextField {...field} margin="dense" label="Start Date" type="date" fullWidth InputLabelProps={{ shrink: true }} />}
+            render={({ field }) => (
+              <TextField disabled={!isEdit} {...field} margin="dense" label="Start Date" type="date" fullWidth InputLabelProps={{ shrink: true }} />
+            )}
             name="startDate"
             control={control}
           />
           <Controller
-            render={({ field }) => <TextField {...field} margin="dense" label="End Date" type="date" fullWidth InputLabelProps={{ shrink: true }} />}
+            render={({ field }) => (
+              <TextField disabled={!isEdit} {...field} margin="dense" label="End Date" type="date" fullWidth InputLabelProps={{ shrink: true }} />
+            )}
             name="endDate"
             control={control}
           />
@@ -133,9 +159,11 @@ const EditTodoForm = ({ openDialog, closeDialog, onSuccess, todoId, todoData }) 
           <Button onClick={closeDialog} color="secondary">
             Cancel
           </Button>
-          <Button type="submit" color="primary">
-            Edit
-          </Button>
+          {isEdit && (
+            <Button type="submit" color="primary">
+              Edit
+            </Button>
+          )}
         </DialogActions>
       </form>
     </Dialog>

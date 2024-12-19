@@ -17,22 +17,31 @@ export default function TodoPage() {
   const [todos, setTodos] = useState([]);
   const { id } = loginApi.getUser();
   const [openDialog, setOpenDialog] = useState(false);
-  const [currentTodo, setCurrentTodo] = useState({});
-  const [isEditing, setIsEditing] = useState(false);
+  const [openEditDialog, setOpenEditDialog] = useState(false);
   const { logout } = useAuth();
   const [filter, setFilter] = useState({});
   const [totalPage, setTotalPage] = useState();
   const [currentPageNumber, setCurrentPageNumber] = useState(1);
+  const [selectedTodoId, setSelectedTodoId] = useState(null);
+  const [isEdit, setIsEdit] = useState(false);
 
   const handleCloseDialog = () => {
     setOpenDialog(false);
-    setCurrentTodo({});
-    setIsEditing(false);
+  };
+  const handleCloseEditDialog = () => {
+    setOpenEditDialog(false);
+    setIsEdit(false);
+    setSelectedTodoId(null);
   };
 
   const handleFilter = (filter) => {
     const cleanedFilter = Object.fromEntries(Object.entries(filter).filter(([_, value]) => value !== "" && value !== null && value !== undefined));
     setFilter(cleanedFilter);
+  };
+  const handleOnView = (todoId) => {
+    setSelectedTodoId(todoId);
+    setIsEdit(false);
+    setOpenEditDialog(true);
   };
 
   useEffect(() => {
@@ -48,10 +57,10 @@ export default function TodoPage() {
     });
   }, [filter, id]);
 
-  const handleOnEdit = (todo) => {
-    setCurrentTodo(todo);
-    setIsEditing(true);
-    setOpenDialog(true);
+  const handleOnEdit = (todoId) => {
+    setSelectedTodoId(todoId);
+    setIsEdit(true);
+    setOpenEditDialog(true);
   };
 
   const handleOnSuccess = () => {
@@ -76,7 +85,15 @@ export default function TodoPage() {
           return;
         }
         toast.success(message);
-        setTodos((prev) => prev.filter((todo) => todo.id !== todoId));
+
+        const remainingItemsOnPage = todos.filter((todo) => todo.id !== todoId);
+        if (remainingItemsOnPage.length === 0 && currentPageNumber > 1) {
+          const newPage = currentPageNumber - 1;
+          setCurrentPageNumber(newPage);
+          setFilter((prev) => ({ ...prev, pageNumber: newPage }));
+        } else {
+          setTodos(remainingItemsOnPage);
+        }
       })
       .catch((error) => {
         toast.error(error.response.data.detail);
@@ -96,17 +113,11 @@ export default function TodoPage() {
             startIcon={<AddIcon />}
             onClick={() => {
               setOpenDialog(true);
-              setIsEditing(false);
             }}
           >
             Add Todo
           </Button>
-          <Button
-            variant="contained"
-            color="secondary"
-            startIcon={<LogoutIcon />}
-            onClick={() => logout()}
-          >
+          <Button variant="contained" color="secondary" startIcon={<LogoutIcon />} onClick={() => logout()}>
             Logout
           </Button>
         </Stack>
@@ -116,15 +127,15 @@ export default function TodoPage() {
 
       <Grid container spacing={3}>
         {todos.map((todo) => (
-          <Grid key={todo.id} size={4}>
-            <TodoCard todo={todo} onEdit={handleOnEdit} onDelete={handleOnDelete} />
+          <Grid key={todo.id} size={3}>
+            <TodoCard todo={todo} onEdit={handleOnEdit} onView={handleOnView} onDelete={handleOnDelete} />
           </Grid>
         ))}
       </Grid>
 
       <Stack flexDirection={"row"} justifyContent={"center"} my="20px">
         <Pagination
-          count={Math.ceil(totalPage / 9)}
+          count={isNaN(Math.ceil(totalPage / 10)) ? 0 : Math.ceil(totalPage / 10)}
           page={currentPageNumber}
           onChange={(e, page) => {
             setCurrentPageNumber(page);
@@ -133,17 +144,9 @@ export default function TodoPage() {
         />
       </Stack>
 
-      {isEditing ? (
-        <EditForm
-          openDialog={openDialog}
-          closeDialog={handleCloseDialog}
-          onSuccess={handleOnSuccess}
-          todoId={currentTodo.id}
-          todoData={currentTodo}
-        />
-      ) : (
-        <TodoForm openDialog={openDialog} closeDialog={handleCloseDialog} onSuccess={handleOnSuccess} />
-      )}
+      <EditForm isEdit={isEdit} todoId={selectedTodoId} openDialog={openEditDialog} closeDialog={handleCloseEditDialog} onSuccess={handleOnSuccess} />
+
+      <TodoForm openDialog={openDialog} closeDialog={handleCloseDialog} onSuccess={handleOnSuccess} />
     </Container>
   );
 }
