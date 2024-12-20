@@ -58,6 +58,7 @@ const TodoForm = ({ openDialog, closeDialog, onSuccess, isEdit }) => {
       toast.success(message);
       onSuccess();
       closeDialog();
+      console.log("User Id after add success: ", id)
       reset({
         title: "",
         description: "",

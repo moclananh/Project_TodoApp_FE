@@ -64,7 +64,7 @@ export default function TodoPage() {
   };
 
   const handleOnSuccess = () => {
-    TodoApi.getTodos(filter).then((response) => {
+    TodoApi.getByUserId(id, filter).then((response) => {
       const { success, message, data } = response.data;
       if (!success) {
         toast.error(message);

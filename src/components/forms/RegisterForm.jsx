@@ -45,6 +45,7 @@ const RegisterForm = () => {
       .then((response) => {
         const { data, message } = response.data;
         toast.success(message);
+        window.location.href = "/auth/login";
       })
       .catch((error) => {
         toast.error(error.response.data.detail);
